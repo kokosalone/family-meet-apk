@@ -1,0 +1,9 @@
+{
+  "appId": "com.family.meet",
+  "appName": "Family Meet",
+  "webDir": "www",
+  "server": {
+    "url": "https://meet-pi-ten.vercel.app",
+    "cleartext": false
+  }
+}
