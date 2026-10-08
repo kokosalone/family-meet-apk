@@ -1,6 +1,6 @@
 {
   "appId": "com.family.meet",
-  "appName": "Family Meet",
+  "appName": "သမိုင်းမိသားစု",
   "webDir": "www",
   "server": {
     "url": "https://meet-pi-ten.vercel.app",
