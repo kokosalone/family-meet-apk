@@ -49,7 +49,25 @@ jobs:
           sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application|' android/app/src/main/AndroidManifest.xml
       - run: npx cap sync android
       - run: cd android && ./gradlew assembleDebug
+      - name: Sign with fixed key
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KS_B64" | base64 -d > release.jks
+          BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
+          "$ANDROID_HOME/build-tools/$BT/apksigner" sign \
+            --ks release.jks \
+            --ks-pass env:KS_PASS \
+            --key-pass env:KEY_PASS \
+            --ks-key-alias "$KEY_ALIAS" \
+            --out family-meet.apk \
+            android/app/build/outputs/apk/debug/app-debug.apk
+          "$ANDROID_HOME/build-tools/$BT/apksigner" verify --print-certs family-meet.apk
+          rm release.jks
       - uses: actions/upload-artifact@v4
         with:
           name: family-meet-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: family-meet.apk
