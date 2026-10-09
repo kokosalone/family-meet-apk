@@ -23,6 +23,27 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+      - name: Generate ringtone
+        run: |
+          mkdir -p android/app/src/main/res/raw
+          python3 - <<'PY'
+          import wave, struct, math
+          rate = 22050
+          dur = 14
+          frames = bytearray()
+          for i in range(rate * dur):
+              t = i / rate
+              phase = t % 4.0
+              s = 0.0
+              if phase < 1.6 and (phase % 0.4) < 0.2:
+                  s = 0.6 * (0.5 * math.sin(2 * math.pi * 440 * t) + 0.5 * math.sin(2 * math.pi * 480 * t))
+              frames += struct.pack('<h', int(s * 32767))
+          with wave.open('android/app/src/main/res/raw/family_ring.wav', 'wb') as w:
+              w.setnchannels(1)
+              w.setsampwidth(2)
+              w.setframerate(rate)
+              w.writeframes(bytes(frames))
+          PY
       - name: Add camera and mic permissions
         run: |
           sed -i 's|<application|<uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application|' android/app/src/main/AndroidManifest.xml
