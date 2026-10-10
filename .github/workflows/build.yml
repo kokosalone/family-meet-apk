@@ -56,7 +56,8 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "$KS_B64" | base64 -d > release.jks
+          echo "$KS_B64" | tr -d '[:space:]' | base64 -d > release.jks
+          test -s release.jks || { echo "keystore is empty"; exit 1; }
           BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
           "$ANDROID_HOME/build-tools/$BT/apksigner" sign \
             --ks release.jks \
